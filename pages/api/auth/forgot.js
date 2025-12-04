@@ -1,8 +1,11 @@
 const crypto = require('crypto');
 const db = require('../../../lib/db');
 const { sendPasswordResetEmail, isSmtpConfigured } = require('../../../lib/mailer');
+const { verifyVerificationCode } = require('../../../lib/verification');
 
 const RESET_TOKEN_TTL_MINUTES = parseInt(process.env.PASSWORD_RESET_TTL_MINUTES || '60', 10);
+const RESET_EMAIL_PURPOSE = 'reset-email';
+const RESET_PHONE_PURPOSE = 'reset-phone';
 
 function hashToken(rawToken) {
   return crypto.createHash('sha256').update(rawToken).digest('hex');
@@ -23,17 +26,40 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { email } = req.body || {};
-  if (!email) {
-    return res.status(400).json({ error: '请输入注册邮箱' });
+  const { email, phone, emailCode, phoneCode } = req.body || {};
+  if (!email || !phone || !emailCode || !phoneCode) {
+    return res.status(400).json({ error: '请填写邮箱、手机号及验证码' });
   }
 
   const normalizedEmail = email.trim().toLowerCase();
+  const normalizedPhone = phone.trim();
   let resetToken;
 
   try {
-    const userStmt = db.prepare('SELECT id, email, name FROM users WHERE LOWER(email) = ?');
+    const userStmt = db.prepare('SELECT id, email, name, phone FROM users WHERE LOWER(email) = ?');
     const user = userStmt.get(normalizedEmail);
+
+    if (!user || user.phone !== normalizedPhone) {
+      return res.status(404).json({ error: '账号信息不匹配' });
+    }
+
+    try {
+      verifyVerificationCode({
+        targetType: 'email',
+        targetValue: normalizedEmail,
+        code: emailCode,
+        purpose: RESET_EMAIL_PURPOSE
+      });
+
+      verifyVerificationCode({
+        targetType: 'phone',
+        targetValue: normalizedPhone,
+        code: phoneCode,
+        purpose: RESET_PHONE_PURPOSE
+      });
+    } catch (verificationError) {
+      return res.status(400).json({ error: verificationError.message || '验证码校验失败' });
+    }
 
     let resetUrl;
 

@@ -26,9 +26,21 @@ export default function UploadForm({ onUploaded }) {
         method: 'POST',
         body: formData
       });
+
+      let responseBody = null;
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        responseBody = await res.json().catch(() => null);
+      } else {
+        responseBody = await res.text().catch(() => null);
+      }
+
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || '上传失败');
+        const message =
+          (responseBody && typeof responseBody === 'object' && (responseBody.error || responseBody.message)) ||
+          (typeof responseBody === 'string' ? responseBody : null) ||
+          '上传失败';
+        throw new Error(message);
       }
       setTitle('');
       setDescription('');

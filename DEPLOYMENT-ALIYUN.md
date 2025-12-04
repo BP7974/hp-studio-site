@@ -80,14 +80,20 @@ server {
     listen 80;
    server_name hp-studio.top www.hp-studio.top;
 
+   # 10GB 上传：禁用缓冲并放宽代理超时
+   client_max_body_size 10240m;
+   proxy_request_buffering off;
+
     location / {
         proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
+      proxy_read_timeout 3600s;
+      proxy_send_timeout 3600s;
     }
 }
 ```
@@ -129,9 +135,10 @@ sudo certbot --nginx -d hp-studio.top -d www.hp-studio.top
    - `SMS_TWILIO_FROM`（例如 `+1234567890`）
 4. Spug 需配置：
    - `SPUG_SMS_ENDPOINT`（或 `SPUG_SMS_BASE_URL + SPUG_SMS_PATH`）
-   - `SPUG_SMS_TOKEN`、`SPUG_SMS_AUTH_SCHEME`、`SPUG_SMS_CHANNEL`
-   - 模板：使用 `SPUG_SMS_TEMPLATE_ID`（Spug 模板）或 `SPUG_SMS_MESSAGE_TEMPLATE`（直接发送内容，支持 `{code}`、`{ttl}` 占位符）
-   - 可选：`SPUG_SMS_TIMEOUT_MS`、`SPUG_SMS_HEADERS_JSON`
+   - `SPUG_SMS_TEMPLATE_ID`（推荐直接填模板编号并拼接 `/send/<模板>` 路径）
+   - `SPUG_SMS_TOKEN`、`SPUG_SMS_AUTH_SCHEME`（默认 `Token`）
+   - `SPUG_SMS_NAME`（填写 Spug 模板里的 `${name}` 变量）
+   - 可选：`SPUG_SMS_HEADERS_JSON`、`SPUG_SMS_TIMEOUT_MS`、`SPUG_SMS_EXTRA_JSON`
 5. 所有方案都可通过 `VERIFICATION_CODE_TTL_MINUTES` / `VERIFICATION_RESEND_SECONDS` 控制验证码有效期与冷却时间。
 
 ## 7. 域名解析

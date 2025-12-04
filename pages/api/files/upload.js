@@ -1,9 +1,19 @@
 const fs = require('fs');
 const path = require('path');
-const formidable = require('formidable');
+const formidableLib = require('formidable');
+const formidable =
+  typeof formidableLib === 'function'
+    ? formidableLib
+    : formidableLib?.default || formidableLib?.formidable || formidableLib;
 const { nanoid } = require('nanoid');
 const db = require('../../../lib/db');
 const { requireUser } = require('../../../lib/auth');
+
+const DEFAULT_MAX_UPLOAD_BYTES = 10 * 1024 * 1024 * 1024; // 10 GiB
+const MAX_UPLOAD_BYTES = (() => {
+  const fromEnv = Number(process.env.MAX_UPLOAD_BYTES);
+  return Number.isFinite(fromEnv) && fromEnv > 0 ? fromEnv : DEFAULT_MAX_UPLOAD_BYTES;
+})();
 
 const uploadDir = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadDir)) {
@@ -11,6 +21,12 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 module.exports = async function handler(req, res) {
+  if (req.socket) {
+    req.socket.setTimeout(0); // allow very large uploads without timing out
+    req.socket.setNoDelay(true);
+    req.socket.setKeepAlive(true);
+  }
+
   if (req.method !== 'POST') {
     res.setHeader('Allow', ['POST']);
     return res.status(405).json({ error: 'Method Not Allowed' });
@@ -21,8 +37,12 @@ module.exports = async function handler(req, res) {
 
   const form = formidable({
     multiples: false,
-    maxFileSize: 20 * 1024 * 1024,
-    keepExtensions: true
+    maxFiles: 1,
+    maxFileSize: MAX_UPLOAD_BYTES,
+    maxTotalFileSize: MAX_UPLOAD_BYTES,
+    keepExtensions: true,
+    allowEmptyFiles: true,
+    minFileSize: 0
   });
 
   try {
