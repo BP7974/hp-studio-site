@@ -22,7 +22,7 @@
    cd /srv/hp-studio
    git clone <你的仓库地址> .
    npm install
-   cp .env.example .env   # 修改 JWT_SECRET、生产配置
+   cp .env.example .env   # 修改 JWT_SECRET、APP_BASE_URL、PASSWORD_RESET_TTL_MINUTES 等
    ```
 2. 初始化数据库与上传目录（第一次启动自动创建，但建议提前赋权）：
    ```bash
@@ -101,6 +101,8 @@ sudo apt install -y certbot python3-certbot-nginx
 sudo certbot --nginx -d hp-studio.top -d www.hp-studio.top
 ```
    Certbot 会自动生成 443 配置并定期续期。
+
+   > 📧 **找回密码邮件**：生产环境建议配置 SMTP，并在 `.env` 中增加相应的连接信息（或在 API 中扩展实际发送逻辑）。默认情况下，后端会在日志以及接口响应里返回调试令牌，方便你在没有邮件服务器时完成测试，上线前务必替换为真实通知手段。
 
 ## 5. 域名解析
 - 登录阿里云域名控制台，找到 `hp-studio.top`。
