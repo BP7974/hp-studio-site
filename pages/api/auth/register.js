@@ -5,6 +5,10 @@ const {
   setAuthCookie,
   serializeUser
 } = require('../../../lib/auth');
+const { verifyVerificationCode } = require('../../../lib/verification');
+
+const EMAIL_PURPOSE = 'register-email';
+const PHONE_PURPOSE = 'register-phone';
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -12,10 +16,10 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { name, email, phone, password } = req.body || {};
+  const { name, email, phone, password, emailCode, phoneCode } = req.body || {};
 
-  if (!name || !email || !phone || !password) {
-    return res.status(400).json({ error: 'All fields are required' });
+  if (!name || !email || !phone || !password || !emailCode || !phoneCode) {
+    return res.status(400).json({ error: '请输入完整信息及验证码' });
   }
 
   const emailTrimmed = String(email).trim().toLowerCase();
@@ -28,6 +32,24 @@ module.exports = async function handler(req, res) {
 
     if (existing) {
       return res.status(409).json({ error: 'Email or phone already registered' });
+    }
+
+    try {
+      verifyVerificationCode({
+        targetType: 'email',
+        targetValue: emailTrimmed,
+        code: emailCode,
+        purpose: EMAIL_PURPOSE
+      });
+
+      verifyVerificationCode({
+        targetType: 'phone',
+        targetValue: phoneTrimmed,
+        code: phoneCode,
+        purpose: PHONE_PURPOSE
+      });
+    } catch (verificationError) {
+      return res.status(400).json({ error: verificationError.message || '验证码校验失败' });
     }
 
     const passwordHash = await hashPassword(password);

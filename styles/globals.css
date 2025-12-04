@@ -208,6 +208,27 @@ textarea {
   font-size: 1rem;
 }
 
+.code-input {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.code-input input {
+  flex: 1;
+}
+
+.code-input button {
+  min-width: 130px;
+  text-align: center;
+}
+
+.helper-text {
+  font-size: 0.85rem;
+  color: #9a9a9a;
+  margin-top: 0.35rem;
+}
+
 textarea {
   min-height: 100px;
 }

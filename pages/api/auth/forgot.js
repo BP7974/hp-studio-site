@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const db = require('../../../lib/db');
+const { sendPasswordResetEmail, isSmtpConfigured } = require('../../../lib/mailer');
 
 const RESET_TOKEN_TTL_MINUTES = parseInt(process.env.PASSWORD_RESET_TTL_MINUTES || '60', 10);
 
@@ -16,7 +17,7 @@ function buildBaseUrl(req) {
   return `${proto}://${host}`.replace(/\/$/, '');
 }
 
-module.exports = function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', ['POST']);
     return res.status(405).json({ error: 'Method Not Allowed' });
@@ -48,7 +49,13 @@ module.exports = function handler(req, res) {
       insert.run(user.id, tokenHash, expiresAt);
 
       resetUrl = `${buildBaseUrl(req)}/auth?token=${resetToken}`;
-      console.log(`[Password reset] ${user.email} -> ${resetUrl}`);
+      if (isSmtpConfigured()) {
+        sendPasswordResetEmail({ to: user.email, resetUrl, token: resetToken }).catch((err) => {
+          console.error('Failed to send password reset email', err);
+        });
+      } else {
+        console.log(`[Password reset] ${user.email} -> ${resetUrl}`);
+      }
     }
 
     return res.status(200).json({

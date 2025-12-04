@@ -17,7 +17,9 @@ export default function AuthPage() {
     email: '',
     phone: '',
     password: '',
-    identifier: ''
+    identifier: '',
+    emailCode: '',
+    phoneCode: ''
   });
   const [resetForm, setResetForm] = useState({
     email: '',
@@ -28,6 +30,10 @@ export default function AuthPage() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [sendingEmailCode, setSendingEmailCode] = useState(false);
+  const [sendingPhoneCode, setSendingPhoneCode] = useState(false);
+  const [emailTimer, setEmailTimer] = useState(0);
+  const [phoneTimer, setPhoneTimer] = useState(0);
   const router = useRouter();
   const { refreshUser } = useAuth();
 
@@ -43,6 +49,102 @@ export default function AuthPage() {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  useEffect(() => {
+    if (!emailTimer) {
+      return undefined;
+    }
+    const id = setInterval(() => {
+      setEmailTimer((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [emailTimer]);
+
+  useEffect(() => {
+    if (!phoneTimer) {
+      return undefined;
+    }
+    const id = setInterval(() => {
+      setPhoneTimer((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [phoneTimer]);
+
+  const requestEmailCode = async () => {
+    if (!form.email) {
+      setError('请先填写邮箱');
+      return;
+    }
+    setSendingEmailCode(true);
+    setError('');
+    setMessage('');
+    try {
+      const res = await fetch('/api/auth/send-email-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const err = new Error(data.error || '验证码发送失败');
+        if (data.retryAfter) {
+          err.retryAfter = data.retryAfter;
+        }
+        throw err;
+      }
+      setMessage(data.previewCode ? `${data.message}（测试验证码：${data.previewCode}）` : data.message || '验证码已发送');
+      if (data.previewCode) {
+        setForm((prev) => ({ ...prev, emailCode: prev.emailCode || data.previewCode }));
+      }
+      const cooldown = data.cooldown || 60;
+      setEmailTimer(cooldown);
+    } catch (err) {
+      setError(err.message);
+      if (err.retryAfter) {
+        setEmailTimer(err.retryAfter);
+      }
+    } finally {
+      setSendingEmailCode(false);
+    }
+  };
+
+  const requestPhoneCode = async () => {
+    if (!form.phone) {
+      setError('请先填写手机号');
+      return;
+    }
+    setSendingPhoneCode(true);
+    setError('');
+    setMessage('');
+    try {
+      const res = await fetch('/api/auth/send-phone-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: form.phone })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const err = new Error(data.error || '短信发送失败');
+        if (data.retryAfter) {
+          err.retryAfter = data.retryAfter;
+        }
+        throw err;
+      }
+      setMessage(data.previewCode ? `${data.message}（测试验证码：${data.previewCode}）` : data.message || '验证码已发送');
+      if (data.previewCode) {
+        setForm((prev) => ({ ...prev, phoneCode: prev.phoneCode || data.previewCode }));
+      }
+      const cooldown = data.cooldown || 60;
+      setPhoneTimer(cooldown);
+    } catch (err) {
+      setError(err.message);
+      if (err.retryAfter) {
+        setPhoneTimer(err.retryAfter);
+      }
+    } finally {
+      setSendingPhoneCode(false);
+    }
   };
 
   const switchMode = (nextMode) => {
@@ -62,7 +164,14 @@ export default function AuthPage() {
     const payload =
       mode === MODES.LOGIN
         ? { identifier: form.identifier, password: form.password }
-        : { name: form.name, email: form.email, phone: form.phone, password: form.password };
+        : {
+            name: form.name,
+            email: form.email,
+            phone: form.phone,
+            password: form.password,
+            emailCode: form.emailCode,
+            phoneCode: form.phoneCode
+          };
 
     try {
       const res = await fetch(endpoint, {
@@ -170,9 +279,6 @@ export default function AuthPage() {
       <button className={mode === MODES.REGISTER ? 'active' : ''} onClick={() => switchMode(MODES.REGISTER)}>
         注册
       </button>
-      <button className={mode === MODES.FORGOT ? 'active' : ''} onClick={() => switchMode(MODES.FORGOT)}>
-        找回密码
-      </button>
     </div>
   );
 
@@ -194,8 +300,38 @@ export default function AuthPage() {
                   <input type="email" name="email" value={form.email} onChange={handleChange} required />
                 </label>
                 <label>
+                  邮箱验证码
+                  <div className="code-input">
+                    <input name="emailCode" value={form.emailCode} onChange={handleChange} required />
+                    <button
+                      type="button"
+                      className="ghost"
+                      onClick={requestEmailCode}
+                      disabled={sendingEmailCode || emailTimer > 0 || !form.email}
+                    >
+                      {sendingEmailCode ? '发送中…' : emailTimer > 0 ? `重发(${emailTimer}s)` : '获取验证码'}
+                    </button>
+                  </div>
+                  <p className="helper-text">先填写邮箱，再点击“获取验证码”完成验证。</p>
+                </label>
+                <label>
                   手机号
                   <input name="phone" value={form.phone} onChange={handleChange} required />
+                </label>
+                <label>
+                  手机验证码
+                  <div className="code-input">
+                    <input name="phoneCode" value={form.phoneCode} onChange={handleChange} required />
+                    <button
+                      type="button"
+                      className="ghost"
+                      onClick={requestPhoneCode}
+                      disabled={sendingPhoneCode || phoneTimer > 0 || !form.phone}
+                    >
+                      {sendingPhoneCode ? '发送中…' : phoneTimer > 0 ? `重发(${phoneTimer}s)` : '获取验证码'}
+                    </button>
+                  </div>
+                  <p className="helper-text">支持含区号的数字，如 +86，先点击“获取验证码”。</p>
                 </label>
               </>
             )}

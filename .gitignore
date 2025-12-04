@@ -5,3 +5,5 @@ hpstudio.db-shm
 hpstudio.db-wal
 uploads
 .env
+*.bundle
+*.bundle.*
