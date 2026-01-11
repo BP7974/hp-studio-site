@@ -1,31 +1,19 @@
-const db = require('../../../lib/db');
+import Database from 'better-sqlite3';
+import path from 'path';
 
-module.exports = function handler(req, res) {
-  if (req.method !== 'GET') {
-    res.setHeader('Allow', ['GET']);
-    return res.status(405).json({ error: 'Method Not Allowed' });
-  }
-
-  try {
-    const stmt = db.prepare(`
-      SELECT files.id, files.title, files.description, files.original_name,
-             files.mime_type, files.size, files.created_at,
-             users.name as uploader
-      FROM files
-      JOIN users ON users.id = files.user_id
-      ORDER BY files.created_at DESC
-      LIMIT 200
-    `);
-    const rows = stmt.all();
-
-    const files = rows.map((row) => ({
-      ...row,
-      downloadUrl: `/api/files/download/${row.id}`
-    }));
-
-    return res.status(200).json({ files });
-  } catch (error) {
-    console.error('List files error', error);
-    return res.status(500).json({ error: 'Unable to load files' });
-  }
-};
+export default function handler(req, res) {
+  const dbPath = path.join(process.cwd(), 'data', 'filemeta.db');
+  const db = new Database(dbPath);
+  const rows = db.prepare('SELECT * FROM files ORDER BY uploadtime DESC').all();
+  db.close();
+  // 适配前端 FileCard 组件字段
+  const files = rows.map(row => ({
+    title: row.originalname,
+    created_at: row.uploadtime,
+    downloadUrl: `/uploads/${row.filename}`,
+    size: row.size,
+    mimetype: row.mimetype,
+    // 其他需要的字段
+  }));
+  res.status(200).json({ files });
+}

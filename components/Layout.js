@@ -7,6 +7,7 @@ export default function Layout({ title = 'HP Studio', description = 'HP Studio f
       <Head>
         <title>{title}</title>
         <meta name="description" content={description} />
+        <meta name="msvalidate.01" content="53ECB99C7381894125564A7220946484" />
       </Head>
       <div className="app-shell">
         <Header />

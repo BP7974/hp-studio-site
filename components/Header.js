@@ -8,8 +8,9 @@ export default function Header() {
     <header className="header">
       <div className="brand">hp studio</div>
       <nav>
-        <Link href="/">主页</Link>
-        <Link href="/explore">作品集</Link>
+  <Link href="/">主页</Link>
+  <Link href="/explore">作品集</Link>
+  <Link href="/upload">上传</Link>
         {user ? (
           <>
             <Link href="/dashboard">上传中心</Link>

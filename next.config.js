@@ -3,7 +3,16 @@ const nextConfig = {
   turbopack: {
     root: __dirname
   },
-  reactStrictMode: true
+  reactStrictMode: true,
+  async rewrites() {
+    return [
+      {
+        source: '/uploads/:path*',
+        destination: '/uploads/:path*',
+      },
+    ];
+  },
+  staticPageGenerationTimeout: 60,
 };
 
 module.exports = nextConfig;
