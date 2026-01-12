@@ -10,9 +10,10 @@ export default function handler(req, res) {
   const files = rows.map(row => ({
     title: row.originalname,
     created_at: row.uploadtime,
-    downloadUrl: `/uploads/${row.filename}`,
+    downloadUrl: `/api/files/download?filename=${encodeURIComponent(row.filename)}`,
     size: row.size,
     mimetype: row.mimetype,
+    original_name: row.originalname,
     // 其他需要的字段
   }));
   res.status(200).json({ files });

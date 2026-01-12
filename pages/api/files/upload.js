@@ -8,7 +8,7 @@ export const config = {
   },
 };
 
-const uploadDir = path.join(process.cwd(), 'uploads');
+const uploadDir = path.join(process.cwd(), 'public', 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -62,12 +62,18 @@ export default async function handler(req, res) {
       });
     }
 
-    // 生成新文件名
-    const extension = path.extname(fileData.originalFilename || '');
-    const storedName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${extension}`;
-    const destPath = path.join(uploadDir, storedName);
 
-    // 移动文件
+    // 保留原始文件名，若重名自动加后缀避免覆盖
+    let storedName = fileData.originalFilename;
+    let destPath = path.join(uploadDir, storedName);
+    let count = 1;
+    const ext = path.extname(storedName);
+    const base = path.basename(storedName, ext);
+    while (fs.existsSync(destPath)) {
+      storedName = `${base}(${count})${ext}`;
+      destPath = path.join(uploadDir, storedName);
+      count++;
+    }
     await fs.promises.rename(fileData.filepath, destPath);
 
     // 写入数据库
