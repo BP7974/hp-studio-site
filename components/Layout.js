@@ -33,18 +33,6 @@ export default function Layout({ title = 'HP Studio', description = 'HP Studio f
         <meta name="description" content={description} />
         <meta name="msvalidate.01" content="53ECB99C7381894125564A7220946484" />
       </Head>
-      <div className="bg-video-global-container">
-        <video
-          className="bg-video-global"
-          src="/videos/AdobeStock_157357375.mov"
-          autoPlay
-          loop
-          muted
-          playsInline
-          poster="/logo.jpg"
-        ></video>
-        <div className="bg-video-global-overlay" />
-      </div>
       <div className="app-shell">
         {!isHome && (
           <header ref={headerRef} className="header-fixed header-large">
@@ -55,33 +43,6 @@ export default function Layout({ title = 'HP Studio', description = 'HP Studio f
         <footer className="footer">© {new Date().getFullYear()} HP Studio · Monochrome craftsmanship</footer>
       </div>
       <style jsx>{`
-        .bg-video-global-container {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100vw;
-          height: 100vh;
-          z-index: -1;
-          pointer-events: none;
-        }
-        .bg-video-global {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100vw;
-          height: 100vh;
-          object-fit: cover;
-          z-index: -1;
-        }
-        .bg-video-global-overlay {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100vw;
-          height: 100vh;
-          background: linear-gradient(120deg, rgba(24,28,39,0.7) 0%, rgba(24,28,39,0.3) 100%);
-          z-index: 0;
-        }
         .app-shell {
           position: relative;
           z-index: 10;
@@ -89,7 +50,6 @@ export default function Layout({ title = 'HP Studio', description = 'HP Studio f
         .main-with-header, .home-main {
           background: transparent !important;
         }
-      `}</style>
         .header-fixed {
           position: fixed;
           top: 0;

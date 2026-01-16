@@ -6,9 +6,6 @@ export default function Header() {
 
   return (
     <header className="header header-center">
-      <div className="header-left">
-        <img src="/logo.jpg" alt="logo" style={{ width: 40, height: 40, borderRadius: '50%' }} />
-      </div>
       <div className="brand">HP STUDIO</div>
       <nav className="header-nav">
         <Link href="/">主页</Link>
@@ -24,19 +21,19 @@ export default function Header() {
         )}
       </nav>
       <style jsx>{`
+        .header {
+          background: rgba(24, 28, 39, 0.8);
+          backdrop-filter: blur(10px);
+        }
         .header-center {
           display: flex;
           align-items: center;
           justify-content: space-between;
           position: relative;
-        }
-        .header-left {
-          flex: 1;
-          display: flex;
-          align-items: center;
+          padding: 0 2rem;
         }
         .brand {
-          flex: 2;
+          flex: 1;
           text-align: center;
           font-size: 1.7rem;
           font-weight: bold;
@@ -45,7 +42,6 @@ export default function Header() {
           color: #fff;
         }
         .header-nav {
-          flex: 1;
           display: flex;
           gap: 2.8rem !important;
           align-items: center;
@@ -53,6 +49,7 @@ export default function Header() {
         }
         .header-nav a, .header-nav button {
           font-size: 1.12rem;
+          color: #fff;
         }
       `}</style>
     </header>

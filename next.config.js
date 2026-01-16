@@ -13,6 +13,11 @@ const nextConfig = {
     ];
   },
   staticPageGenerationTimeout: 60,
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '100mb',
+    },
+  },
 };
 
 module.exports = nextConfig;
