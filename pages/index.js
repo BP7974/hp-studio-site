@@ -1,40 +1,113 @@
+
+import Head from 'next/head';
 import Link from 'next/link';
-import Layout from '../components/Layout';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
 
-export default function Home() {
+export default function ExplorePage() {
+  const router = useRouter();
+  const [hoveredLink, setHoveredLink] = useState(null);
+
   return (
-    <Layout title="HP Studio · 黑白作品档案">
-      <section className="hero">
-        <p className="eyebrow">HP STUDIO</p>
-        <h1>黑白之间，记录每一份灵感</h1>
-        <p className="muted large">
-          上传、收藏、分享。HP Studio 让每一位创作者以极简黑白风展示自己的文件作品。
-        </p>
-        <div className="actions">
-          <Link href="/auth" className="primary">立即加入</Link>
-          <Link href="/explore" className="ghost">浏览作品</Link>
-        </div>
-      </section>
-
-      <section className="grid two">
-        <div className="panel">
-          <h2>公共作品墙</h2>
-          <p>所有上传内容默认公开，任何访客都能浏览与下载，保持创作透明度。</p>
-        </div>
-        <div className="panel">
-          <h2>电话 & 邮箱登录</h2>
-          <p>兼顾国内外沟通习惯，既可以手机号注册，也可以邮箱登录。</p>
-        </div>
-      </section>
-
-      <section className="panel">
-        <h2>HP Studio 宗旨</h2>
-        <ul className="bullets">
-          <li>黑白极简的视觉体验，凸显作品本身。</li>
-          <li>极速上传，自动生成可分享链接。</li>
-          <li>团队协作友好，统一的工作室品牌形象。</li>
-        </ul>
-      </section>
-    </Layout>
+    <>
+      <Head>
+        <title>HP Studio</title>
+        <meta name="description" content="HP Studio - 发现、分享、上传你的影视作品" />
+      </Head>
+      {router.pathname === '/' && (
+        <section className="hero-video-full">
+          <div className="hero-content-full">
+            <img src="/logo.jpg" alt="HP STUDIO" className="hero-logo-full" />
+            <h1>HP STUDIO 影视资源站</h1>
+            <p>发现、分享、上传你的影视作品</p>
+            <div className="main-links-full">
+              <Link 
+                href="/explore" 
+                className="main-link"
+                style={{ color: hoveredLink === 'explore1' ? '#ffd700' : '#fff' }}
+                onMouseEnter={() => setHoveredLink('explore1')}
+                onMouseLeave={() => setHoveredLink(null)}
+              >
+                立即探索
+              </Link>
+              <Link 
+                href="/explore" 
+                className="main-link"
+                style={{ color: hoveredLink === 'explore2' ? '#ffd700' : '#fff' }}
+                onMouseEnter={() => setHoveredLink('explore2')}
+                onMouseLeave={() => setHoveredLink(null)}
+              >
+                作品集
+              </Link>
+              <Link 
+                href="/upload" 
+                className="main-link"
+                style={{ color: hoveredLink === 'upload' ? '#ffd700' : '#fff' }}
+                onMouseEnter={() => setHoveredLink('upload')}
+                onMouseLeave={() => setHoveredLink(null)}
+              >
+                上传
+              </Link>
+              <Link 
+                href="/dashboard" 
+                className="main-link"
+                style={{ color: hoveredLink === 'dashboard' ? '#ffd700' : '#fff' }}
+                onMouseEnter={() => setHoveredLink('dashboard')}
+                onMouseLeave={() => setHoveredLink(null)}
+              >
+                上传中心
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+      <style jsx>{`
+        .hero-video-full {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
+          overflow: hidden;
+          z-index: 0;
+          margin: 0;
+          padding: 0;
+        }
+        .hero-content-full {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          z-index: 3;
+          text-align: center;
+          color: #fff;
+        }
+        .hero-logo-full {
+          width: 100px;
+          border-radius: 16px;
+          margin-bottom: 1.5rem;
+        }
+        .main-links-full {
+          margin-top: 2.5rem;
+          display: flex;
+          justify-content: center;
+          gap: 2.5rem;
+        }
+        .main-link {
+          color: #fff !important;
+          font-size: 1.2rem;
+          font-weight: bold;
+          cursor: pointer;
+          text-decoration: none !important;
+          transition: color 0.2s;
+        }
+        .main-link:hover {
+          color: #ffd700 !important;
+        }
+        .main-link:visited {
+          color: #fff !important;
+        }
+      `}</style>
+    </>
   );
 }

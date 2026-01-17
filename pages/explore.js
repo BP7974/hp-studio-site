@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import FileCard from '../components/FileCard';
@@ -7,17 +8,9 @@ export default function ExplorePage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch('/api/files/list');
-        if (!res.ok) throw new Error('无法加载作品集');
-        const data = await res.json();
-        setFiles(data.files);
-      } catch (err) {
-        setError(err.message);
-      }
-    };
-    load();
+    fetch('/api/files/list')
+      .then(res => res.json())
+      .then(data => setFiles(data.files));
   }, []);
 
   return (
